@@ -14,13 +14,21 @@ require(mnormt) # for multivariate normal data generation
 
 classify_for <- function(beta, xtrain, ytrain, xtest, ytest){
   # [ToDo] Code discriminant analysis classifier using for loop
+  # would put checks here to make sure data types are right
   
   # Calculate sample means based on training data
-  
-  
+  mean1 <- colMeans(xtrain[ytrain == 1, ])
+  mean2 <- colMeans(xtrain[ytrain == 2, ])
   # Calculate class assignments for xtest in a for loop
+  ypred <- vector(length = length(ytest))
+  for(i in 1:length(ytest)){
+    h1 <- as.numeric(crossprod((xtest[i,] - mean1), beta)^2)
+    h2 <- as.numeric(crossprod((xtest[i,] - mean2), beta)^2)
+    ypred[i] <- which.min(c(h1, h2))
+  }
   
   # Calculate % error using ytest
+  error <- 100 * mean(ytest != ypred)
   
   # Return predictions and error
   return(list(ypred = ypred, error = error))
@@ -30,10 +38,23 @@ classify_vec <- function(beta, xtrain, ytrain, xtest, ytest){
   # [ToDo] Try to create vectorized version of classify_for
   
   # Calculate sample means based on training data
+  mean1 <- colMeans(xtrain[ytrain == 1, ])
+  mean2 <- colMeans(xtrain[ytrain == 2, ])
+  
+  # Calculate inner product of the mean with beta:
+  m1b <- as.numeric(crossprod(mean1, beta))
+  m2b <- as.numeric(crossprod(mean2, beta))
+  
+  # Calculate prodduct of xtest with beta:
+  xtestb <- xtest %*% beta
   
   # Calculate class assignments for xtest using matrix and vector algebra
+  h1 <- (xtestb - m1b)^2
+  h2 <- (xtestb - m2b)^2
+  ypred <- apply(cbind(h1, h2), 1, which.min)
   
   # Calculate % error using ytest
+  error <- 100 * mean(ytest != ypred)
   
   # Return predictions and error
   return(list(ypred = ypred, error = error))
